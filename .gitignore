@@ -12,6 +12,6 @@ out/
 out_native/
 version.h
 Session.vim
-*.so
+*.so*
 *.dylib
 .DS_Store
