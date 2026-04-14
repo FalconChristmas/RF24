@@ -26,15 +26,16 @@ HEADER_DIR=${PREFIX}/include/RF24
 
 DRIVER_DIR=RPi
 
-# Arch-specific compiler flags. armhf uses the Pi 1 baseline (compatible with
-# every Pi ever); arm64 (Pi3/4/5 in 64-bit mode) uses armv8-a. Override by
-# passing CCFLAGS=... on the make command line.
-UNAME_M := $(shell uname -m)
-ifeq ($(UNAME_M),aarch64)
+# Arch-specific compiler flags. Detected from the compiler's target triple
+# rather than `uname -m`: a Pi4/Pi5 running 32-bit Raspberry Pi OS boots a
+# 64-bit kernel by default and `uname -m` returns aarch64 even though the
+# compiler is armhf. Override by passing CCFLAGS=... on the make command line.
+TRIPLE := $(shell $(CXX) -dumpmachine 2>/dev/null)
+ifneq (,$(findstring aarch64,$(TRIPLE)))
     CCFLAGS ?= -Ofast -march=armv8-a
-else ifeq ($(UNAME_M),armv6l)
+else ifneq (,$(findstring arm-linux-gnueabihf,$(TRIPLE)))
     CCFLAGS ?= -Ofast -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s
-else ifeq ($(UNAME_M),armv7l)
+else ifneq (,$(findstring arm,$(TRIPLE)))
     CCFLAGS ?= -Ofast -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7-a
 else
     CCFLAGS ?= -Ofast
