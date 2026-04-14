@@ -26,8 +26,19 @@ HEADER_DIR=${PREFIX}/include/RF24
 
 DRIVER_DIR=RPi
 
-# The recommended compiler flags for the Raspberry Pi
-CCFLAGS=-Ofast -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s
+# Arch-specific compiler flags. armhf uses the Pi 1 baseline (compatible with
+# every Pi ever); arm64 (Pi3/4/5 in 64-bit mode) uses armv8-a. Override by
+# passing CCFLAGS=... on the make command line.
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M),aarch64)
+    CCFLAGS ?= -Ofast -march=armv8-a
+else ifeq ($(UNAME_M),armv6l)
+    CCFLAGS ?= -Ofast -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s
+else ifeq ($(UNAME_M),armv7l)
+    CCFLAGS ?= -Ofast -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7-a
+else
+    CCFLAGS ?= -Ofast
+endif
 
 # make all
 # reinstall the library after each recompilation

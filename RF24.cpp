@@ -19,7 +19,7 @@ void RF24::csn(bool mode)
   // divider of 4 is the minimum we want.
   // CLK:BUS 8Mhz:2Mhz, 16Mhz:4Mhz, or 20Mhz:5Mhz
 #ifdef ARDUINO
-	#if  ( !defined(RF24_TINY) && !defined (__arm__)  && !defined (SOFTSPI)) || defined (CORE_TEENSY)
+	#if  ( !defined(RF24_TINY) && !((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__))  && !defined (SOFTSPI)) || defined (CORE_TEENSY)
  			_SPI.setBitOrder(MSBFIRST);
   			_SPI.setDataMode(SPI_MODE0);
 			_SPI.setClockDivider(SPI_CLOCK_DIV2);
@@ -48,7 +48,7 @@ void RF24::csn(bool mode)
 			delayMicroseconds(11);  // allow csn to settle
 		}
 	}		
-#elif !defined  (__arm__) || defined (CORE_TEENSY)
+#elif !(defined(__arm__) || defined(__aarch64__)) || defined (CORE_TEENSY)
 	digitalWrite(csn_pin,mode);	
     delayMicroseconds(5);	
 #endif
@@ -89,7 +89,7 @@ uint8_t RF24::read_register(uint8_t reg, uint8_t* buf, uint8_t len)
   // decrement before to skip status byte
   while ( --size ){ *buf++ = *prx++; } 
   
-#elif defined (__arm__) && !defined ( CORE_TEENSY )
+#elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && !defined ( CORE_TEENSY )
   status = _SPI.transfer(csn_pin, R_REGISTER | ( REGISTER_MASK & reg ), SPI_CONTINUE );
   while ( len-- > 1 ){
     *buf++ = _SPI.transfer(csn_pin,0xff, SPI_CONTINUE);
@@ -127,7 +127,7 @@ uint8_t RF24::read_register(uint8_t reg)
   bcm2835_spi_transfernb( (char *) spi_txbuff, (char *) spi_rxbuff, 2);
   result = *++prx;   // result is 2nd byte of receive buffer  
   
-  #elif defined (__arm__) && !defined ( CORE_TEENSY )
+  #elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && !defined ( CORE_TEENSY )
   _SPI.transfer(csn_pin, R_REGISTER | ( REGISTER_MASK & reg ) , SPI_CONTINUE);
   result = _SPI.transfer(csn_pin,0xff);
   #else
@@ -161,7 +161,7 @@ uint8_t RF24::write_register(uint8_t reg, const uint8_t* buf, uint8_t len)
   bcm2835_spi_transfernb( (char *) spi_txbuff, (char *) spi_rxbuff, size);
   status = *prx; // status is 1st byte of receive buffer
   
-  #elif defined (__arm__) && !defined ( CORE_TEENSY )
+  #elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && !defined ( CORE_TEENSY )
   	status = _SPI.transfer(csn_pin, W_REGISTER | ( REGISTER_MASK & reg ), SPI_CONTINUE );
     while ( --len){
     	_SPI.transfer(csn_pin,*buf++, SPI_CONTINUE);
@@ -199,7 +199,7 @@ uint8_t RF24::write_register(uint8_t reg, uint8_t value)
 	bcm2835_spi_transfernb( (char *) spi_txbuff, (char *) spi_rxbuff, 2);
 	status = *prx++; // status is 1st byte of receive buffer
 	
-  #elif defined (__arm__) && !defined ( CORE_TEENSY )
+  #elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && !defined ( CORE_TEENSY )
   status = _SPI.transfer(csn_pin, W_REGISTER | ( REGISTER_MASK & reg ), SPI_CONTINUE);
   _SPI.transfer(csn_pin,value);
   #else
@@ -243,7 +243,7 @@ uint8_t RF24::write_payload(const void* buf, uint8_t data_len, const uint8_t wri
 	bcm2835_spi_transfernb( (char *) spi_txbuff, (char *) spi_rxbuff, size);
 	status = *prx; // status is 1st byte of receive buffer
 	
- #elif defined (__arm__) && !defined ( CORE_TEENSY )
+ #elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && !defined ( CORE_TEENSY )
 
   status = _SPI.transfer(csn_pin, writeType , SPI_CONTINUE);
 
@@ -315,7 +315,7 @@ uint8_t RF24::read_payload(void* buf, uint8_t data_len)
 		
 	*current = *prx;
 
-  #elif defined (__arm__) && !defined ( CORE_TEENSY )
+  #elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && !defined ( CORE_TEENSY )
 
   status = _SPI.transfer(csn_pin, R_RX_PAYLOAD, SPI_CONTINUE );
 
@@ -374,7 +374,7 @@ uint8_t RF24::spiTrans(uint8_t cmd){
   #if defined (RF24_LINUX)
     csn(LOW);
     status = bcm2835_spi_transfer( cmd );
-  #elif defined (__arm__) && !defined ( CORE_TEENSY )
+  #elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && !defined ( CORE_TEENSY )
 	status = _SPI.transfer(csn_pin, cmd );
   #else
 
@@ -599,7 +599,7 @@ void RF24::printDetails(void)
   print_byte_register(PSTR("CONFIG"),CONFIG);
   print_byte_register(PSTR("DYNPD/FEATURE"),DYNPD,2);
 
-#if defined(__arm__) || defined (RF24_LINUX) || defined (__ARDUINO_X86__) || defined(LITTLEWIRE)
+#if (defined(__arm__) || defined(__aarch64__)) || defined (RF24_LINUX) || defined (__ARDUINO_X86__) || defined(LITTLEWIRE)
   printf_P(PSTR("Data Rate\t = %s\r\n"),pgm_read_word(&rf24_datarate_e_str_P[getDataRate()]));
   printf_P(PSTR("Model\t\t = %s\r\n"),pgm_read_word(&rf24_model_e_str_P[isPVariant()]));
   printf_P(PSTR("CRC Length\t = %s\r\n"),pgm_read_word(&rf24_crclength_e_str_P[getCRCLength()]));
@@ -646,7 +646,7 @@ void RF24::begin(void)
     // Initialize pins
   if (ce_pin != csn_pin) pinMode(ce_pin,OUTPUT);  
   
-  #if defined(__arm__) && ! defined( CORE_TEENSY )
+  #if (defined(__arm__) || defined(__aarch64__)) && ! defined( CORE_TEENSY )
   	_SPI.begin(csn_pin);					// Using the extended SPI features of the DUE
 	_SPI.setClockDivider(csn_pin, 11);   // Set the bus speed to just under 8mhz on Due
 	_SPI.setBitOrder(csn_pin,MSBFIRST);	// Set the bit order and mode specific to this device
@@ -1077,7 +1077,7 @@ uint8_t RF24::getDynamicPayloadSize(void)
   csn(LOW);
   bcm2835_spi_transfernb( (char *) spi_txbuff, (char *) spi_rxbuff, 2);
   result = spi_rxbuff[1];  
-  #elif defined (__arm__) && ! defined( CORE_TEENSY )
+  #elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && ! defined( CORE_TEENSY )
   _SPI.transfer(csn_pin, R_RX_PL_WID, SPI_CONTINUE );
   result = _SPI.transfer(csn_pin,0xff);
   #else
@@ -1266,7 +1266,7 @@ void RF24::toggle_features(void)
     csn(LOW);
     bcm2835_spi_transfer( ACTIVATE );
     bcm2835_spi_transfer( 0x73 );
-  #elif defined (__arm__) && ! defined( CORE_TEENSY )
+  #elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && ! defined( CORE_TEENSY )
   _SPI.transfer(csn_pin, ACTIVATE, SPI_CONTINUE );
   _SPI.transfer(csn_pin, 0x73 );
   #else
@@ -1352,7 +1352,7 @@ void RF24::writeAckPayload(uint8_t pipe, const void* buf, uint8_t len)
 	
     bcm2835_spi_transfern( (char *) spi_txbuff, size);
 
-  #elif defined (__arm__) && ! defined( CORE_TEENSY )
+  #elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && ! defined( CORE_TEENSY )
     csn(LOW);
 	_SPI.transfer(csn_pin, W_ACK_PAYLOAD | ( pipe & 0b111 ), SPI_CONTINUE);
 	while ( data_len-- > 1 ){
@@ -1464,7 +1464,7 @@ bool RF24::setDataRate(rf24_datarate_e speed)
   // HIGH and LOW '00' is 1Mbs - our default
   setup &= ~(_BV(RF_DR_LOW) | _BV(RF_DR_HIGH)) ;
   
-  #if defined(__arm__) || defined (RF24_LINUX) || defined (__ARDUINO_X86__)
+  #if (defined(__arm__) || defined(__aarch64__)) || defined (RF24_LINUX) || defined (__ARDUINO_X86__)
     txRxDelay=250;
   #else //16Mhz Arduino
     txRxDelay=85;
@@ -1474,7 +1474,7 @@ bool RF24::setDataRate(rf24_datarate_e speed)
     // Must set the RF_DR_LOW to 1; RF_DR_HIGH (used to be RF_DR) is already 0
     // Making it '10'.
     setup |= _BV( RF_DR_LOW ) ;
-  #if defined(__arm__) || defined (RF24_LINUX) || defined (__ARDUINO_X86__)
+  #if (defined(__arm__) || defined(__aarch64__)) || defined (RF24_LINUX) || defined (__ARDUINO_X86__)
     txRxDelay=450;
   #else //16Mhz Arduino
 	txRxDelay=155;
@@ -1487,7 +1487,7 @@ bool RF24::setDataRate(rf24_datarate_e speed)
     if ( speed == RF24_2MBPS )
     {
       setup |= _BV(RF_DR_HIGH);
-      #if defined(__arm__) || defined (RF24_LINUX) || defined (__ARDUINO_X86__)
+      #if (defined(__arm__) || defined(__aarch64__)) || defined (RF24_LINUX) || defined (__ARDUINO_X86__)
       txRxDelay=190;
       #else //16Mhz Arduino	  
 	  txRxDelay=65;

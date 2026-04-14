@@ -17,7 +17,7 @@
 #ifndef __PRINTF_H__
 #define __PRINTF_H__
 
-#if defined (ARDUINO) && !defined (__arm__) && !defined(__ARDUINO_X86__)
+#if defined (ARDUINO) && !((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__)) && !defined(__ARDUINO_X86__)
 
 int serial_putc( char c, FILE * )
 {
@@ -31,7 +31,7 @@ void printf_begin(void)
   fdevopen( &serial_putc, 0 );
 }
 
-#elif defined (__arm__)
+#elif ((defined(__arm__) || defined(__aarch64__)) || defined(__aarch64__))
 
 void printf_begin(void){}
 

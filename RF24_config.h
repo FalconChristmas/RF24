@@ -26,20 +26,20 @@
   #define rf24_max(a,b) (a>b?a:b)
   #define rf24_min(a,b) (a<b?a:b)
   
-#if ( ( defined (__linux) || defined (linux) ) && defined( __arm__ ) || defined(LITTLEWIRE) )
-  
-  #if defined(__arm__) && defined(linux)
+#if ( ( defined (__linux) || defined (linux) ) && (defined(__arm__) || defined(__aarch64__)) || defined(LITTLEWIRE) )
+
+  #if (defined(__arm__) || defined(__aarch64__)) && defined(linux)
 
   #define RF24_LINUX
   #endif
-  
+
   #include <stdint.h>
   #include <stdio.h>
   #include <time.h>
   #include <string.h>
   #include <sys/time.h>
   #include <stddef.h>
-  #ifdef __arm__
+  #if defined(__arm__) || defined(__aarch64__)
     #include "RPi/bcm2835.h"
   #endif
 

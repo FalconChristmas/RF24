@@ -16,7 +16,7 @@
 #define __RF24_H__
 
 #include "RF24_config.h"
-#if ( defined (__linux) || defined (LINUX) ) && defined( __arm__ )
+#if ( defined (__linux) || defined (LINUX) ) && (defined(__arm__) || defined(__aarch64__))
   #include "RPi/bcm2835.h"
 #elif LITTLEWIRE
   #include <LittleWireSPI/LittleWireSPI.h>
